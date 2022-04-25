@@ -1,0 +1,117 @@
+---
+title: "Portfolio 10- Cohorts"
+output: html_document
+date: '2022-04-25'
+---
+
+For this portfolio, I'd like to visually depict differences in the relationships between variables across age cohorts. Thus, we'll have a graph with an x-y axis showing the relationship between the variables life expectancy and happiness. I've created notional data for three age cohorts: 1930-1959, 1960-1989, and 1990-2000. 
+Ordinarily, we would be mainly interested in the relationship between life expectancy and happiness. The trick here is that I want to provide some means of depicting data points in a way that signifies birth year cohorts. Looking at different birth year cohorts could provide potentially useful examples of cohort effects. This portfolio will seek to illustrate potential differences in such effects. 
+
+1) First, install packages / libraries, and a code that I need for Mac. 
+
+```{r Stop the errors!}
+r = getOption("repos")
+r["CRAN"] = "http://cran.us.r-project.org"
+options(repos = r)
+```
+
+```{r Packages}
+install.packages('tidyr')
+install.packages('readr')
+```
+
+```{r Library}
+library(ggplot2)
+library(tidyr)
+```
+
+```{r Read data from CSV into a dataframe}
+library(readr)
+SampleFile <-read.csv("~/Documents/GitHub/Portfolio10-Cohorts/SampleFile.csv")
+View(SampleFile)
+```
+
+
+2) One way to do this is to use icon size to represent birth year. This method treats birth year as a continuous or numeric variable. 
+
+```{r 2. Icon size rep value}
+ggplot(data = SampleFile,
+       mapping = aes(x = hap, y = lexp, color = gender, size = birth_year)) +
+  geom_point(color = "pink") +
+  labs(title = "Life expectancy vs. happiness: A view by birth year cohorts",
+       x = "Happiness (0-100 scale)", y = "Life expectancy (in years)", size = "Birth Year")
+```
+
+As this graph makes clear, the icons quickly crowd on top of each other. As this initial effort makes clear, what we need is to assign discrete colors to year cohorts.  
+
+3) What we need is to assign different colors to each year cohort. To do this, we can create a scatter plot with 3 colors representing the three levels of our categorical variable "cohort".
+
+```{r 3. Icon color rep cohort}
+ggplot(data = SampleFile,
+      mapping = aes(x = hap, y = lexp,
+                    color = cohort)) +      
+geom_point() +                      
+labs(title = "Life expectancy vs. happiness",
+subtitle = "A view by birth year cohorts",
+x = "Happiness (0-100 scale)", y = "Life expectancy (in years)", 
+color = "Year Cohort")  
+```
+
+This is a great improvement. However, we could use a line representing the mean, just to clarify what exactly the life expectancy bottom line is, by cohort. 
+To that end, the following website is spot on: 
+https://www.geeksforgeeks.org/add-line-for-average-per-group-using-ggplot2-package-in-r/
+
+4) Let's overlay a line showing the mean.
+
+```{r 4. Icon color rep cohort with mean}
+library(tidyverse)
+mean <- SampleFile%>% group_by(cohort)%>%summarise(mean_val=mean(lexp))
+ggplot(data = SampleFile, aes(x= hap, y=lexp)) +
+geom_point(aes(colour = cohort)) +
+geom_hline(data= mean, aes(yintercept = mean_val,col=cohort)) +
+labs(title = "Life expectancy vs. happiness",
+subtitle = "A view by birth year cohorts",
+x = "Happiness (0-100 scale)", y = "Life expectancy (in years)", 
+color = "Year Cohort")  
+```
+
+Now we have three lines for the three different cohorts that represents the mean of that cohort level.
+That is very close to what we are looking for! At this point, it is a good idea to step back and remember that the reader/audience does not have full context on my intentions with this graph. In particular, the significance of the three mean lines is not self-explanatory. 
+
+5) Assuming that reader/audience would benefit from some visual cues, I think it would be advantageous to label the three mean life expectancy lines. 
+
+```{r 5. Icon color rep cohort with mean, labeled}
+library(tidyverse)
+mean <- SampleFile%>% group_by(cohort)%>%summarise(mean_val=mean(lexp))
+ggplot(data = SampleFile, aes(x= hap, y=lexp)) +
+geom_point(aes(colour = cohort)) +
+geom_hline(data= mean, aes(yintercept = mean_val,col=cohort)) +
+labs(title = "Life expectancy vs. happiness",
+subtitle = "A view by birth year cohorts",
+x = "Happiness (0-100 scale)", y = "Life expectancy (in years)", 
+color = "Year Cohort")  +
+  geom_text(x=35, y=72, label="mean, 1990-2000 cohort", color="blue")+
+    geom_text(x=35, y=60, label="mean, 1960-1989 cohort", color="springgreen4")+
+  geom_text(x=35, y=95, label="mean, 1930-1959 cohort", color="red")
+```
+
+6) Finally, we can include regression lines. 
+
+```{r 6. Icon color rep cohort with mean, labeled}
+library(tidyverse)
+mean <- SampleFile%>% group_by(cohort)%>%summarise(mean_val=mean(lexp))
+ggplot(data = SampleFile, aes(x = hap, y = lexp, color = cohort)) +
+geom_point(aes(colour = cohort)) +
+geom_smooth(method = "lm", se = FALSE) +
+geom_hline(data= mean, aes(yintercept = mean_val,col=cohort)) +
+labs(title = "Life expectancy vs. happiness",
+subtitle = "A view by birth year cohorts",
+x = "Happiness (0-100 scale)", y = "Life expectancy (in years)", 
+color = "Year Cohort")  +
+  geom_text(x=35, y=72, label="mean, 1990-2000 cohort", color="blue")+
+    geom_text(x=35, y=60, label="mean, 1960-1989 cohort", color="springgreen4")+
+  geom_text(x=35, y=95, label="mean, 1930-1959 cohort", color="red")
+```
+       
+The graph is starting to get a little bit busy at this point. However, the fundamental relationships that I wanted to highlight can be seen: The mean for the 1930-1959 cohort is greater than the other two cohorts. Within each of these three cohorts, the relationship between life expectancy and happiness moves in a different direction.
+The graph gives us visual food for thought to wonder why the relationship between life expectancy and happiness was positive for the 1960-1989 cohort but negative for the most recent cohort. Also, the difference in means has been depicted in a clear way that gives rise to questions about that difference as well. We're telling stories with data!
